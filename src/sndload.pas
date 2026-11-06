@@ -6,8 +6,9 @@ interface
 
 uses Blit, GameIo, DaxIo, GDVars, Types;
 
-{ Installs the sound driver loaded at p as the sound procedure, through a far pointer moved to the driver's entry, and
-  calls its setup command (0) with the offset and segment of data. Halts when p is not paragraph-aligned.
+{ Saves the speaker port ($61) and installs the sound driver loaded at p as the sound procedure, through a far pointer
+  moved to the driver's entry, and calls its setup command (0) with the offset and segment of data. Halts when p is not
+  paragraph-aligned.
   @param(p The driver's code, paragraph-aligned.)
   @param(data The music data.) }
 procedure InstallSoundDriver(p: Pointer; data: Pointer);
@@ -19,7 +20,7 @@ procedure PlaySound(x: Word);
 { Empty routine with no callers. }
 procedure NoopSndLoad;
 
-{ Sends the driver command 3 (stop). }
+{ Sends the driver command 3 (stop), then restores the speaker port ($61) InstallSoundDriver saved. }
 procedure StopSound;
 
 { Frees the sound driver's code buffer and the music data. }
@@ -37,6 +38,9 @@ procedure LoadSound;
 function CallSoundDriver(cmd, firstArg, secondArg: Word): Word;
 
 implementation
+const
+  { PC speaker control (8255 port B) }
+  SPEAKER_PORT = $61;
 
 function CallSoundDriver(cmd, firstArg, secondArg: Word): Word;
 begin
@@ -90,6 +94,7 @@ end;
 
 procedure InstallSoundDriver(p: Pointer; data: Pointer);
 begin
+  GDVars.savedSpeakerPort := Port[SndLoad.SPEAKER_PORT];
   { halt unless paragraph-aligned, then shift $10 paragraphs from the segment into the offset }
   if Byte(LongInt(p) and $F) <> 0 then
     Halt(0);
@@ -110,6 +115,7 @@ end;
 procedure StopSound;
 begin
   GDVars.sndRes := SndLoad.CallSoundDriver(3, 0, 0);
+  Port[SndLoad.SPEAKER_PORT] := GDVars.savedSpeakerPort;
 end;
 
 procedure NoopSndLoad;

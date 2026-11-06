@@ -7,7 +7,7 @@ unit SaveLoad;
 interface
 
 uses Types, CharHlp, ClassCal, MenuCore, Portrait, View3D, MapTiles, Blit, TextRend, DaxIo, GameIo, Dos, Crt, GDConsts,
-  GDVars, C_Race, C_Class, C_Keys, C_Ifc;
+  GDVars, C_Race, C_Class, C_Keys, C_Ifc, C_Stat;
 
 { Lists the characters that can be loaded: the *.guy files (save mode 0, CURSE imports) or *.who files (save mode 1) of
   the mode's record size in the save directory, leaving out characters already in the party and those with a byte above
@@ -493,7 +493,7 @@ var
   bundleIdx: Byte;
 
   {$F+}
-  { Converts the imported record in savedBuf into cr, trimming the spaces around its name. }
+  { Converts the imported record in savedBuf into cr, trimming its name's spaces and capping its base Strength. }
   procedure ConvertPoolRecord;
   var
     i: Byte;
@@ -601,6 +601,10 @@ var
     Move(PArr(savedBuf)^[$1A0], cr^.curDiceA, SizeOf(cr^.curDiceA));
     Move(PArr(savedBuf)^[$1A2], cr^.curModA, SizeOf(cr^.curModA));
     cr^.hpCurrent := PArr(savedBuf)^[$1A4];
+    { Cap the imported base strength at the race/gender limit. }
+    with Types.PCharRecord(cr)^ do
+      if GDConsts.raceLimits[race].strMax[gender] < stats[C_Stat.STRENGTH].base then
+        stats[C_Stat.STRENGTH].base := GDConsts.raceLimits[race].strMax[gender];
     cr^.movementCur := PArr(savedBuf)^[$1A5];
   end;
 

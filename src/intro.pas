@@ -18,8 +18,9 @@ procedure Introduction;
   @returns(True when a key ended the wait, False on timeout.) }
 function DelayOrKey(ticks: Word): Boolean;
 
-{ Ends the introduction: clears the screen, stops the music and frees its buffers unless sound is off, shows the mouse
-  cursor again and enables the save on a heap failure. The sound guard Introduction set stays set. }
+{ Ends the introduction: clears the screen, stops the sound and frees its buffers unless sound is off, shows the mouse
+  cursor again, marks the game active so a heap failure offers a save, and clears the guard that kept the sound off
+  during the introduction. }
 procedure FinishIntroduction;
 
 { Draws the credits window and the two-column credit roll: headings in magenta, names in yellow. }
@@ -53,6 +54,7 @@ begin
   end;
   Mouse.ShowMouse;
   GDVars.heapFailureSaveEnabled := 1;
+  GDVars.soundGuard := 0;
 end;
 
 procedure Credits;

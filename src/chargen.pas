@@ -72,7 +72,7 @@ procedure DropCharacterMenu;
   six abilities within the race and class limits, its maximum hit points between HpMinimum and HpMaximum, and its name.
   The arrow keys or a mouse click move between fields, Add and Subtract change them, Keep accepts and Exit or Escape
   undoes every change. Keeping recalculates the spell slots, marks the character modified and works out its rolled hit
-  points again. Note: raising a multi-class half-elf's Wisdom sets it to 13. }
+  points again. }
 procedure ModifyCharacterMenu;
 
 { Works out the highest maximum hit points a character may be given: per class, its hit die's top value plus the
@@ -160,6 +160,7 @@ var
   ch: Char;
   { Unused in this version; see the other implementations of this routine. }
   ext: Byte;
+  { var-passed to both MenuVertical and ViewCharMenu }
   ext2: Boolean;
   { Unused in this version; see the other implementations of this routine. }
   menuEnabled: array[1..9] of Byte;
@@ -545,6 +546,7 @@ begin
               classLevelA[C_Class.THIEF] := 1;
               experience := 66667;
             end;
+      { Note: gets the three-class 66667 }
       C_Class.MAGE_THIEF: begin
               classLevelA[C_Class.MAGE] := 1;
               classLevelA[C_Class.THIEF] := 1;
@@ -914,6 +916,7 @@ var
       6: if idx <> 0 then begin
               TextRend.PrintSpaces(Length(GDVars.curChar^.name) + 1, 1, 0, 1);
               TextRend.DisplayString(1, 1, LightMagenta, 0, GDVars.curChar^.name);
+
               if GDVars.curChar^.name[cursorCol] = ' ' then
                 TextRend.DisplayString(cursorCol, 1, White, 0, '%')
               else
@@ -942,6 +945,7 @@ begin
   savedStrExc := GDVars.curChar^.strExc;
   savedHpMax := GDVars.curChar^.hpMax;
   savedName := GDVars.curChar^.name;
+
   cursorCol := 1;
   field := 7;
   DisplayModifyField(0);
@@ -976,7 +980,7 @@ begin
 
       case key of
         CharGen.KEY_DEL:
-          { Del -- close the gap at the cursor. }
+
           if (field = 6) and (Length(GDVars.curChar^.name) > 1) then begin
             if cursorCol = Length(GDVars.curChar^.name) then begin
               Dec(GDVars.curChar^.name[0]);
@@ -1008,7 +1012,7 @@ begin
 
       case key of
         'S':
-          { Subtract }
+
           if field < 6 then begin
             i := field;
             Dec(stats[i].cur);
@@ -1073,7 +1077,7 @@ begin
             else
               Dec(cursorCol);
         'A':
-          { Add }
+
           if field < 6 then begin
             i := field;
             Inc(stats[i].cur);
@@ -1093,9 +1097,6 @@ begin
                    if stats[i].cur > GDConsts.raceLimits[race].wisMax then
                      stats[i].cur := GDConsts.raceLimits[race].wisMax;
                    if spellSlots[C_Spell.CLERIC_LIST, 1] > 0 then spellSlots[C_Spell.CLERIC_LIST, 1] := 1;
-                   if (race = C_Race.HALF_ELF) and (charClass >= C_Class.CLERIC_FIGHTER) and
-                       (charClass < 17) then
-                     stats[i].cur := 13;
                  end;
               C_Stat.DEXTERITY: if stats[i].cur > GDConsts.raceLimits[race].dexMax then
                    stats[i].cur := GDConsts.raceLimits[race].dexMax;
@@ -1128,7 +1129,7 @@ begin
             if field > 7 then field := 0;
           end;
         C_Keys.BACKSPACE:
-          { Backspace }
+
           if (cursorCol > 1) and (field = 6) then begin
             for j := cursorCol to Length(GDVars.curChar^.name) do
               GDVars.curChar^.name[j - 1] := GDVars.curChar^.name[j];
@@ -1164,7 +1165,7 @@ begin
             end;
         C_Keys.NONE:
           begin
-            { Restore on Esc }
+
             for i := C_Stat.STRENGTH to C_Stat.CHARISMA do
               GDVars.curChar^.stats[i].cur := savedStats[i];
             GDVars.curChar^.strExc := savedStrExc;
@@ -1177,6 +1178,7 @@ begin
           end;
       end;
     end;
+
     CharHlp.RecalcStats(GDVars.curChar);
     ViewChar.PrintCombatStats;
     DisplayModifyField(1);
@@ -2060,7 +2062,7 @@ begin
   cur := list;
   sel := 0;
   repeat
-    { Re-read the file every pass: an arm may have rewritten it. }
+
     Assign(cfgIn, GDConsts.cfgName);
     Reset(cfgIn);
     for i := 1 to 5 do
@@ -2134,13 +2136,13 @@ begin
           end;
         1:
           begin
-            { JOYSTICK toggle. }
+
             GDVars.joyOn := GDVars.joyOn = False;
             Assign(cfgOut, GDConsts.cfgName);
             Rewrite(cfgOut);
             if GDVars.joyOn then begin
               CharGen.CalibrateJoystickInWindow;
-              { calibrate clears joyOn if the stick does not answer. }
+
               if GDVars.joyOn then begin
                 line[3] := 'J';
                 for i := 1 to 5 do
@@ -2167,7 +2169,7 @@ begin
           end;
         2:
           begin
-            { NEITHER. }
+
             GDVars.joyOn := False;
             Mouse.HideMouse;
             GDVars.mouseOn := False;
@@ -2204,7 +2206,6 @@ begin
   Joystick.ProbeJoystick;
   if not GDVars.joyOn then Exit;
 
-  { Center reading: average twenty samples with the stick at rest. }
   sumX := 0;
   sumY := 0;
   for j := 1 to 20 do begin
@@ -2215,7 +2216,6 @@ begin
   GDVars.joyCal[1].x.thr[3] := sumX div 20;
   GDVars.joyCal[1].y.thr[3] := sumY div 20;
 
-  { ---- upper-left corner ---- }
   repeat
     Border.ClearBox(1, 1, 38, 22);
     TextRend.DisplayString(1, 3, LightMagenta, 0, 'Push JOYSTICK #1 to the extreme upper');
@@ -2247,7 +2247,7 @@ begin
       end;
     end;
   until ok <> 0;
-  { Two evenly spaced thresholds between the low corner and the center. }
+
   GDVars.joyCal[1].x.lo := sumX;
   GDVars.joyCal[1].x.thr[1] := GDVars.joyCal[1].x.lo + (GDVars.joyCal[1].x.thr[3] - GDVars.joyCal[1].x.lo) div 3;
   GDVars.joyCal[1].x.thr[2] := GDVars.joyCal[1].x.lo + (GDVars.joyCal[1].x.thr[3] - GDVars.joyCal[1].x.lo) * 2 div 3;
@@ -2257,7 +2257,6 @@ begin
 
   repeat until not Joystick.JoyButton(1, 1);
 
-  { ---- lower-right corner ---- }
   repeat
     Border.ClearBox(1, 1, 38, 22);
     TextRend.DisplayString(1, 3, LightMagenta, 0, 'Push JOYSTICK #1 to the extreme lower');

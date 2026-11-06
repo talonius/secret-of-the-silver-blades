@@ -154,15 +154,11 @@ errorLen        =       $ - errorText
 
 ; These five cells, the voice banks and oldInt8 need no initial value; they
 ; hold whatever the build left in the space, scraps of other code and text.
-;
-; Note: they matter once: soundSuspend hooks INT 8 before its first
-; ProgramSpeakerVoices(0), and a tick in between finds currentSong non-zero and steps
-; every voice these bytes leave counting; the first speaker voice sounds.
-currentSong     dw      8BFEh                   ; the song playing, 0 = none
-streamVoice     dw      067Eh                   ; the voice whose stream is being read
-bankVoices      dw      858Ah                   ; the bank being ticked: its voices
-bankDividers    dw      0000h                   ;   and its semitone table
-streamReturn    dw      0598h                   ; where 0FBh returns to
+currentSong     dw      0000h                   ; the song playing, 0 = none
+streamVoice     dw      0000h                   ; the voice whose stream is being read
+bankVoices      dw      0000h                   ; the bank being ticked: its voices
+bankDividers    dw      0900h                   ;   and its semitone table
+streamReturn    dw      7073h                   ; where 0FBh returns to
 voiceSong       db      VOICES dup (0)          ; each voice's song; not read by the driver
 outputOn        db      1                       ; 0 mutes both devices
 ; Not read by the driver.
@@ -178,30 +174,31 @@ cmdTable        dw      offset cmdClear, offset cmdReturn, offset cmdCall
 ; octave up halves the divider.
 
 speakerVoices   label   byte                    ; 8 Voice records
-        db      0Eh,0E8h,00h,00h,25h,03h,00h,89h,46h,0FEh,0EBh,05h,31h,0C0h,89h,46h
-        db      0FEh,8Bh,7Eh,06h,8Ah,85h,00h,00h,98h,05h,0E0h,00h,50h,0FFh,76h,0FEh
-        db      0Eh,0E8h,00h,00h,89h,0ECh,5Dh,0CAh,02h,00h,55h,89h,0E5h,8Bh,46h,06h
-        db      3Dh,11h,00h,74h,0Ah,3Dh,0Eh,00h,74h,05h,3Dh,0Fh,00h,75h,07h,0Eh
-        db      0E8h,00h,00h,0E9h,85h,00h,3Dh,10h,00h,75h,06h,0Eh,0E8h,00h,00h,00h
-        db      30h,4Ch,00h,00h,00h,07h,00h,00h,30h,48h,00h,00h,00h,0Fh,00h,00h
-        db      30h,50h,00h,00h,00h,14h,00h,06h,30h,28h,00h,00h,00h,0Ah,00h,06h
-        db      30h,2Ch,00h,00h,00h,07h,00h,11h,50h,18h,00h,00h,00h,2Bh,00h,1Ah
-        db      30h,60h,00h,00h,00h,30h,00h,23h,90h,20h,00h,00h,00h,43h,00h,11h
-        db      00h,1Ch,00h,00h,00h,4Dh,00h,11h,00h,18h,00h,00h,00h,54h,00h,23h
-        db      90h,20h,00h,00h,00h,5Fh,00h,11h,00h,20h,00h,00h,00h,6Ah,00h,23h
-        db      90h,20h,00h,00h,00h,75h,00h,11h,00h,1Ch,00h,00h,00h,7Fh,00h,11h
-        db      00h,18h,00h,00h,00h,86h,00h,11h,00h,14h,00h,00h,00h,8Ah,00h,23h
-        db      90h,20h,00h,02h,00h,8Eh,00h,11h,90h,00h,00h,00h,00h,9Ah,00h,23h
-        db      90h,20h,00h,00h,00h,0A5h,00h,23h,90h,20h,00h,00h,00h,0ACh,00h,11h
-        db      00h,1Ch,00h,00h,00h,0B8h,00h,11h,00h,18h,00h,00h,00h,0C3h,00h,23h
-        db      90h,20h,00h,00h,00h,07h,00h,23h,90h,20h,00h,01h,00h,0Ah,00h,23h
-        db      90h,20h,00h,02h,00h,0Eh,00h,23h,90h,20h,00h,00h,00h,13h,00h,11h
-        db      00h,10h,00h,00h,00h,1Ch,00h,11h,00h,18h,00h,00h,00h,23h,00h,11h
-        db      00h,1Ch,00h,00h,00h,2Ah,00h,11h,10h,28h,00h,00h,00h,04h,00h,11h
-        db      20h,28h,00h,00h,00h,07h,00h,11h,90h,00h,00h,00h,00h,0Ah,00h,11h
-        db      90h,00h,00h,02h,00h,0Eh,00h,11h,90h,00h,00h,00h,00h,12h,00h,0C8h
-        db      8Bh,46h,0Ch,0BAh,0Eh,00h,0F7h,0E2h,8Bh,0F8h,88h,8Dh,00h,00h,0FFh,76h
-        db      0Ch,0Eh,0E8h,00h,00h,89h,0ECh,5Dh,0CAh,08h,00h,55h,89h,0E5h,83h,0ECh
+        db      6Ch,6Ch,20h,31h,30h,36h
+        db      25 dup (0)
+        db      09h,73h,70h,65h,6Ch,6Ch,20h,31h,30h,37h
+        db      25 dup (0)
+        db      09h,73h,70h,65h,6Ch,6Ch,20h,31h,30h,38h,00h,00h,00h,00h,30h,4Ch
+        db      00h,00h,00h,07h,00h,00h,30h,48h,00h,00h,00h,0Fh,00h,00h,30h,50h
+        db      00h,00h,00h,14h,00h,06h,30h,28h,00h,00h,00h,0Ah,00h,06h,30h,2Ch
+        db      00h,00h,00h,07h,00h,11h,50h,18h,00h,00h,00h,2Bh,00h,1Ah,30h,60h
+        db      00h,00h,00h,30h,00h,23h,90h,20h,00h,00h,00h,43h,00h,11h,00h,1Ch
+        db      00h,00h,00h,4Dh,00h,11h,00h,18h,00h,00h,00h,54h,00h,23h,90h,20h
+        db      00h,00h,00h,5Fh,00h,11h,00h,20h,00h,00h,00h,6Ah,00h,23h,90h,20h
+        db      00h,00h,00h,75h,00h,11h,00h,1Ch,00h,00h,00h,7Fh,00h,11h,00h,18h
+        db      00h,00h,00h,86h,00h,11h,00h,14h,00h,00h,00h,8Ah,00h,23h,90h,20h
+        db      00h,02h,00h,8Eh,00h,11h,90h,00h,00h,00h,00h,9Ah,00h,23h,90h,20h
+        db      00h,00h,00h,0A5h,00h,23h,90h,20h,00h,00h,00h,0ACh,00h,11h,00h,1Ch
+        db      00h,00h,00h,0B8h,00h,11h,00h,18h,00h,00h,00h,0C3h,00h,23h,90h,20h
+        db      00h,00h,00h,07h,00h,23h,90h,20h,00h,01h,00h,0Ah,00h,23h,90h,20h
+        db      00h,02h,00h,0Eh,00h,23h,90h,20h,00h,00h,00h,13h,00h,11h,00h,10h
+        db      00h,00h,00h,1Ch,00h,11h,00h,18h,00h,00h,00h,23h,00h,11h,00h,1Ch
+        db      00h,00h,00h,2Ah,00h,11h,10h,28h,00h,00h,00h,04h,00h,11h,20h,28h
+        db      00h,00h,00h,07h,00h,11h,90h,00h,00h,00h,00h,0Ah,00h,11h,90h,00h
+        db      00h,02h,00h,0Eh,00h,11h,90h,00h,00h,00h,00h,12h,00h,20h,49h,6Eh
+        db      76h,69h,73h,69h,62h,69h,6Ch,69h,74h,79h
+        db      17 dup (0)
+        db      0Fh,50h,6Fh
 
 ; Timer counts, 1193182 Hz / frequency, from C at 32.7 Hz.
 speakerDividers dw      36484, 34436, 32503, 30679, 29007, 27332
@@ -209,18 +206,18 @@ speakerDividers dw      36484, 34436, 32503, 30679, 29007, 27332
 speakerVoice    dw      0                       ; the voice the speaker plays
 
 tandyVoices     label   byte                    ; 8 Voice records
-        db      8Ch,0D2h,52h,50h,0FFh,76h,06h,0Eh,0E8h,00h,00h,89h,0ECh,5Dh,0CAh,08h
-        db      00h,55h,89h,0E5h,83h,0ECh,02h,31h,0C0h,89h,46h,0FEh,0EBh,03h,0FFh,46h
-        db      0FEh,8Bh,7Eh,0FEh,80h,0BDh,00h,00h,00h,74h,13h,0FFh,76h,0FEh,0B8h,00h
-        db      00h,8Ch,0DAh,52h,50h,31h,0C0h,50h,0Eh,0E8h,00h,00h,0EBh,11h,0FFh,76h
-        db      0FEh,0B8h,00h,00h,8Ch,0DAh,52h,50h,31h,0C0h,50h,0Eh,0E8h,00h,00h,83h
-        db      7Eh,0FEh,11h,75h,0C9h,80h,3Eh,00h,00h,01h,75h,6Ch,0B8h,0Ch,00h,50h
-        db      0B8h,00h,00h,8Ch,0DAh,52h,50h,31h,0C0h,50h,0Eh,0E8h,00h,00h,0B8h,0Fh
-        db      00h,50h,0B8h,00h,00h,8Ch,0DAh,52h,50h,31h,0C0h,50h,0Eh,0E8h,00h,00h
-        db      0B8h,10h,00h,50h,0B8h,00h,00h,8Ch,0DAh,52h,50h,31h,0C0h,50h,0Eh,0E8h
-        db      00h,00h,0B8h,0Eh,00h,50h,0B8h,00h,00h,8Ch,0DAh,52h,50h,31h,0C0h,50h
-        db      0Eh,0E8h,00h,00h,0B8h,11h,00h,50h,0B8h,00h,00h,8Ch,0DAh,52h,50h,31h
-        db      0C0h,50h,0Eh,0E8h,00h,00h,0B8h,04h,0B8h,0Eh,11h,10h,28h,00h,00h,00h
+        db      00h,00h,00h,00h,00h,00h,00h,01h,06h,00h,06h,00h,0Ah,03h,00h,04h
+        db      01h,02h,0Ah,01h,00h,00h,00h,01h,06h,00h,06h,00h,0Ah,00h,00h,04h
+        db      02h,01h,0Ah,01h,01h,00h,00h,01h,00h,00h,00h,00h,04h,02h,00h,04h
+        db      00h,02h,05h,00h,00h,00h,00h,01h,0FFh,00h,00h,00h,04h,00h,00h,04h
+        db      00h,01h,05h,01h,01h,00h,00h,01h,03h,00h,0Ah,00h,00h,01h,00h,04h
+        db      05h,02h,01h,00h,00h,00h,00h,01h,00h,00h,00h,03h,04h,02h,00h,04h
+        db      08h,02h,04h,01h,00h,00h,00h,01h,00h,00h,00h,03h,04h,02h,00h,04h
+        db      09h,02h,04h,01h,00h,00h,00h,01h,00h,00h,00h,0Ah,04h,02h,00h,04h
+        db      0Ah,02h,0Ah,00h,00h,00h,03h,01h,00h,00h,00h,00h,04h,00h,00h,04h
+        db      00h,01h,01h,02h,01h,00h,03h,01h,0Ch,00h,3Ch,3Ch,04h,00h,01h,04h
+        db      0Bh,01h,01h,05h,01h,00h,03h,01h,00h,00h,00h,02h,00h,01h,00h,04h
+        db      05h,02h,01h,00h,00h,00h,03h,04h,0B8h,0Eh,11h,10h,28h,00h,00h,00h
         db      04h,0BAh,0Eh,11h,20h,28h,00h,00h,00h,02h,00h,02h,00h,04h,0A3h,0Eh
         db      11h,90h,00h,00h,00h,00h,06h,89h,16h,0Eh,11h,90h,00h,00h,02h,00h
         db      02h,12h,79h,00h,00h,15h,00h,02h,06h,0C4h,3Eh,0Eh,11h,90h,00h,00h
@@ -4040,7 +4037,7 @@ tandyEnv3:
         envHold
 
 oldInt8         label   dword                   ; the BIOS timer handler
-        db      09h,0Ah,0Ah,0Bh
+        db      03h,06h,02h,03h
 
 ; ---------------------------------------------------------------------------
 ; Installing and removing the driver

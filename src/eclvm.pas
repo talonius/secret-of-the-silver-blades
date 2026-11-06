@@ -8,11 +8,12 @@ uses Types, GDConsts, GDVars, C_Ifc, C_Class, EclMenu, Combat, CharGen, SaveLoad
   ViewChar, GameTime, Money, FxEngine, CharHlp, ClassCal, MenuCore, MapView, Portrait, View3D, MapTiles, EclTrace,
   Explore, Camp, PostCbt, Vault, Shop, Temple, Border, TextRend, DaxIo, GameIo, Mouse, SoundDrv, Crt, MapCurs;
 
-{ Runs the game from the current ECL block until the party is destroyed: loads the block (the start block, the demo's,
-  or the one last entered), runs its entry script, and in the demo removes the party at once. Otherwise it repeats the
-  map menu: Encamp enters camp and Look searches through the block's search script, then the block's run script, the
-  party's step (ResolveMovement) with the step sound when the party moved, and the search script again; a NEWECL from
-  any script loads the next block through NewEclDone. The party is removed at the end. }
+{ First sets partyDefeated when PartyIsDefeated finds the party defeated. Runs the game from the current ECL block until
+  the party is destroyed: loads the block (the start block, the demo's, or the one last entered), runs its entry script,
+  and in the demo removes the party at once. Otherwise it repeats the map menu: Encamp enters camp and Look searches
+  through the block's search script, then the block's run script, the party's step (ResolveMovement) with the step sound
+  when the party moved, and the search script again; a NEWECL from any script loads the next block through NewEclDone.
+  The party is removed at the end. }
 procedure GameLoop;
 
 implementation
@@ -2057,8 +2058,8 @@ begin
   while (GDVars.eclStop = 0) and (GDVars.partyDefeated = 0) do begin
     GDVars.prevOp := GDVars.curOp;
     GDVars.curOp := GDVars.zone3^[GDVars.eclIp];
-    EclVm.DispatchEclCommand;
     EclTrace.ShowTrace(EclTrace.OpName(GDVars.curOp), 0, 0, 0);
+    EclVm.DispatchEclCommand;
   end;
   GDVars.eclStop := 0;
 end;
@@ -2101,12 +2102,29 @@ begin
   GDVars.savedInterface := GDVars.interfaceState;
 end;
 
+{ Tells whether the party is defeated: outside the demo, no party member is enabled.
+  @returns(True when the party is defeated.) }
+function PartyIsDefeated: Boolean;
+var
+  defeated: Boolean;
+  cr: Types.PCharRecord;
+begin
+  cr := GDVars.creatureList;
+  defeated := not GDVars.demoMode;
+  while (cr <> nil) and defeated do begin
+    defeated := cr^.enabled = 0;
+    cr := cr^.nextCharAddr;
+  end;
+  PartyIsDefeated := defeated;
+end;
+
 procedure GameLoop;
 var
   cmd: Char;
   cr: Types.PCharRecord;
   sav: Byte;
 begin
+  GDVars.partyDefeated := Byte(EclVm.PartyIsDefeated);
   GDVars.savedChar := GDVars.curChar;
   GDVars.viewDirty := 1;
   GDVars.eclProtection := 0;

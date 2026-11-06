@@ -301,13 +301,12 @@ var
     while it is clear }
   soundActive: Byte;
 
-{ Sound: the Ctrl-S lock. }
+{ Ctrl-S sound lock, speaker port, disk, saved games and the party and treasure lists. }
 var
   { set by the title sequence; while set, the Ctrl-S sound toggle does nothing }
   soundGuard: Byte;
-
-{ Disk, saved games and the party and treasure lists. }
-var
+  { the speaker port's value before the sound driver was installed, put back when it is removed }
+  savedSpeakerPort: Byte;
   { the game disk the data files are read from }
   diskNum: Byte;
   { diskNum saved across a read from another disk }

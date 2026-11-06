@@ -1441,7 +1441,10 @@ var
   ch: Char;
   redraw: Boolean;
   saved: Byte;
+  savedRosterPick: Byte;
 begin
+  savedRosterPick := GDVars.rosterPickMenu;
+  GDVars.rosterPickMenu := 1;
   saved := GDVars.rosterMouseOn;
   GDVars.rosterMouseOn := 1;
   repeat
@@ -1457,6 +1460,7 @@ begin
   CharHlp.DisplayParty(GDVars.curChar, True);
   PickCharacter := ch = 'S';
   GDVars.rosterMouseOn := saved;
+  GDVars.rosterPickMenu := savedRosterPick;
 end;
 
 function MinOf(a, b: Word): Word;
