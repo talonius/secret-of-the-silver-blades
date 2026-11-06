@@ -53,14 +53,14 @@ function AttackRollNoAttacker(defender: Types.PCharRecord; sixtyMinusThac0: Byte
 function AttackRoll(attacker, defender: Types.PCharRecord;
                     sixtyMinusAc: Byte): Boolean;
 
-{ Rolls a creature's saving throw. A natural 1 fails and a natural 20 succeeds; otherwise the d20 plus the creature's
-  saving throw bonus and the modifier, after the creature's condition-12 effects, must reach its save value for the
-  category. The roll and the result are kept for later use, and so is the category when the roll is neither 1 nor 20.
-  Note: the total is kept in a Byte, so a total below 0 wraps to a large value and succeeds.
+{ Rolls cr's saving throw. A natural 1 fails and a natural 20 succeeds; otherwise the d20 plus cr's saveBonus and
+  modifier, after cr's condition-12 effects, must reach its save value for saveType. The roll and the result stay in
+  GDVars.saveRoll and GDVars.saveResult; GDVars.saveType is set when the roll is neither 1 nor 20. Note: the total is
+  kept in a Byte, so a total below 0 wraps to a large value and succeeds; and False is returned whatever the roll.
   @param(cr Creature saving.)
-  @param(saveType Saving throw category, an index into the creature's saves.)
-  @param(modifier Added to the roll.)
-  @returns(True when the save succeeds.) }
+  @param(saveType Saving throw category, an index into cr's saves.)
+  @param(modifier Modifier added to the roll, read as signed.)
+  @returns(False, whatever GDVars.saveResult holds.) }
 function RollSavingThrow(cr: Types.PCharRecord; saveType, modifier: Byte): Boolean;
 
 { Rolls a number of dice and adds them up.
@@ -705,6 +705,7 @@ begin
     end;
   end;
   RollSavingThrow := GDVars.saveResult;
+  RollSavingThrow := False;
 end;
 
 function RollDice(n, sides: Byte): Byte;

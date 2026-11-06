@@ -907,7 +907,6 @@ begin
            and (p^.secondNameId = target^.secondNameId) and (p^.thirdNameId = target^.thirdNameId)
            and (p^.kind = target^.kind) and (p^.plusV2 = target^.plusV2)
            and (p^.saveBonusV1 = target^.saveBonusV1) and (p^.cursed = target^.cursed)
-           and (p^.bundleQuantity = target^.bundleQuantity)
            and (p^.scribe0 = p^.scribe0) and (p^.scribe0 < 2)
            and (p^.scribe1 = p^.scribe1) and (p^.scribe2 = p^.scribe2) then begin
           if total + p^.count <= 255 then begin
@@ -1001,8 +1000,8 @@ procedure SellItem(it: Types.PItemRec);
 var
   value: Word;
   gold: Word;
-  takable: Word;
-  t: Word;
+  takable: LongInt;
+  t: LongInt;
   s: Types.TStr40;
   q: Word;
   r: Word;
@@ -1133,7 +1132,7 @@ var
   s: String;
   { Unused in this version; see the other implementations of this routine. }
   ch: Char;
-  amount: Word;
+  amount: LongInt;
   doneOuter: Boolean;
   doneInner: Boolean;
   redraw: Boolean;
@@ -1219,7 +1218,7 @@ var
   s: String;
   { Unused in this version; see the other implementations of this routine. }
   ch: Char;
-  amount: Word;
+  amount: LongInt;
 begin
   repeat
     ViewChar.PrintMoney;

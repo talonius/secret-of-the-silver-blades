@@ -1,7 +1,7 @@
 { Core keyboard, mouse, and joystick input.
 
   Central entry is ReadGameKey: it merges the BIOS keyboard with the mouse and joystick pollers and hosts a debug side
-  channel gated by the command-line password "Woof": Ctrl-D toggles a debug.txt log, Ctrl-Z dumps a "who: <name> sp#:
+  channel gated by the command-line password "Hoop": Ctrl-D toggles a debug.txt log, Ctrl-Z dumps a "who: <name> sp#:
   <n>" object list into it, and Ctrl-C aborts. Ctrl-S is the sound on/off toggle and is not behind the password. }
 {$F+,O-,S-,R-,V-,B-,I-}
 unit GameIo;
@@ -14,7 +14,7 @@ uses Crt, Dos, Mouse, Joystick, SoundDrv, GDConsts, GDVars, C_Keys, C_Sound, Typ
   polled until it gives input or a key is pressed: a left or right mouse button gives Enter or Escape (and marks a mouse
   click), a joystick direction gives its key from joyKeyMap, and joystick buttons 1 and 2 give Enter and Escape; a key
   pressed meanwhile wins. With neither device it waits for a key, or returns #0 while the demo runs. Ctrl-S turns the
-  sound off, or back on to Tandy or speaker sound, unless sound is guarded. With Woof as the first parameter, Ctrl-D
+  sound off, or back on to Tandy or speaker sound, unless sound is guarded. With Hoop as the first parameter, Ctrl-D
   turns the debug log (debug.txt) on or off, Ctrl-Z writes the effects of each creature to it while it is open, and
   Ctrl-C quits.
   @returns(The key, or #0 in the demo when none was waiting.) }
@@ -171,7 +171,7 @@ begin
   end;
 
   { the debug password }
-  if ParamStr(1) = 'Woof' then
+  if ParamStr(1) = 'Hoop' then
     case ch of
       { Ctrl-D: toggle debug.txt logging }
       GameIo.KEY_CTRL_D:

@@ -640,6 +640,7 @@ begin
       if MenuCore.YesNoMenu('Lose it? ', LightMagenta, LightGreen, White, 2) = 'Y' then
         CharHlp.RemoveSpell(cr, spell);
     end else begin
+      Border.ClearBox(1, 17, 38, 22);
       TextRend.DisplayString(1, 19, LightGreen, 0, 'That Item');
       if spell = 31 then
         TextRend.DisplayString(1, 20, LightGreen, 0, 'is only useful on locked doors.')
@@ -911,7 +912,8 @@ begin
       if not saved then
         FxEngine.AddEffectWithMessage(tgt, GDConsts.spellDefs[GDVars.spellId].effectId,
                                       Magic.CalcSpellDuration(GDVars.spellId),
-                                      CharHlp.GetCasterLevel(GDVars.spellId), 0, redu, saved, msg);
+                                      CharHlp.GetCasterLevel(GDVars.spellId), Ord(GDVars.spellId = 81), redu,
+                                      saved, msg);
     end;
 end;
 
@@ -1876,12 +1878,12 @@ begin
     CharHlp.PrintNameStringAnim(GDVars.castTargets[1], 1, GDConsts.msgIs + GDConsts.msgHealed);
 end;
 
-{ Spell 63 (potion of youth): the target becomes 1d4 + 1 years younger, but no younger than 18. }
+{ Makes the caster 1d4 + 1 years younger, but no younger than 18. }
 procedure SpellYouth;
 var
   cr: Types.PCharRecord;
 begin
-  cr := GDVars.castTargets[1];
+  cr := GDVars.curChar;
   cr^.age := cr^.age - (FxEngine.RollDice(1, 4) + 1);
   if cr^.age < 18 then begin
     cr^.age := 18;
@@ -1907,7 +1909,6 @@ end;
 procedure SpellNeutralizePoison;
 var
   cr: Types.PCharRecord;
-  { HasEffect var parameter }
   e: Types.PEffectRec;
 begin
   cr := GDVars.castTargets[1];
@@ -1946,7 +1947,6 @@ end;
   one "smashes them flat". }
 procedure SpellSticksToSnakes;
 var
-  { HasEffect var parameter }
   e: Types.PEffectRec;
 begin
   if GDVars.castTargets[1]^.highestLevel < 6 then begin
@@ -2515,13 +2515,16 @@ begin
   Magic.ResolveSpell(GDVars.spellId, 0, 0, 0, 0, GDConsts.msgIs + GDConsts.msgProtected);
 end;
 
-{ Spell 113 (Stone to Flesh): a petrified target becomes okay with 1 hit point ("is no longer a statue"); in camp any
-  other target asks whether to cast anyway; then the spell's effect applies. Note: the answer is tested against 'y',
-  which PromptCastAnyway never returns. }
+{ Spell 113 (Stone to Flesh): a petrified target becomes okay with 1 hit point ("is no longer a statue") and, in combat,
+  leaves the downed list, gets its cell's terrain back and is placed on the map again; in camp any other target asks
+  whether to cast anyway; then the spell's effect applies. Note: the answer is tested against 'y', which
+  PromptCastAnyway never returns. }
 procedure SpellStoneToFlesh;
 var
   tgt: Types.PCharRecord;
   ch: Char;
+  i: Byte;
+  j: Byte;
 begin
   tgt := GDVars.castTargets[1];
   if tgt^.status = C_Status.PETRIFIED then begin
@@ -2529,6 +2532,17 @@ begin
     tgt^.enabled := 1;
     tgt^.hpCurrent := 1;
     CharHlp.PrintCreatureMessage(tgt, GDConsts.msgIs + 'no longer a statue', 10, False);
+    if GDVars.interfaceState = C_Ifc.IN_COMBAT then begin
+      i := 1;
+      while GDVars.downed[i].cr <> tgt do
+        Inc(i);
+      GDVars.arenaPtr^.cells[GDVars.downed[i].y, GDVars.downed[i].x] := GDVars.downed[i].terrain;
+      for j := i to GDVars.downedCount - 1 do
+        GDVars.downed[j] := GDVars.downed[j + 1];
+      Dec(GDVars.downedCount);
+      if CbtMap.IsValidCreatureLoc(tgt, CbtMap.CombatCellX(tgt), CbtMap.CombatCellY(tgt), True) then
+        CbtMap.ScrollView(GDVars.targetCellX, GDVars.targetCellY, 0, C_Dir.CENTER);
+    end;
   end else if GDVars.interfaceState = C_Ifc.CAMPING then begin
     ch := Magic.PromptCastAnyway(tgt, GDConsts.msgIs + 'not stoned.');
     if ch = 'y' then

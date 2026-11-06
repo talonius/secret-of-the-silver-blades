@@ -5,5 +5,5 @@ interface
 implementation
 uses GDConsts, GDVars;
 begin
-  GDVars.stingKey := GDConsts.itemNames[41];
+  GDVars.stingKey := GDConsts.itemNames[122];
 end.

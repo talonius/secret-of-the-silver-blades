@@ -50,7 +50,7 @@ end;
 
 procedure FreeSoundBuffers;
 begin
-  FreeMem(GDVars.comPtr, GDVars.comSize + 16);
+  FreeMem(GDVars.comPtr, GDVars.comSize + 606);
   FreeMem(GDVars.sndPtr, GDVars.sndSize);
 end;
 
@@ -70,7 +70,8 @@ begin
     GameIo.ExitGame;
   end;
   { paragraph-align the raw allocation }
-  GetMem(GDVars.comPtr, GDVars.comSize + 16);
+  GetMem(GDVars.comPtr, GDVars.comSize + 606);
+  FillChar(GDVars.comPtr^, GDVars.comSize + 606, 0);
   GDVars.workPtr := GDVars.comPtr;
   if (LongInt(GDVars.workPtr) and $F) > 0 then begin
     Inc(LongInt(GDVars.workPtr), $10000);

@@ -143,13 +143,13 @@ procedure ApplyRangePenalty(attacker, defender: Types.PCharRecord; var armorClas
   @returns(True if a target was found.) }
 function FindCureTarget(cr: Types.PCharRecord; var tgt: Pointer): Boolean;
 
-{ Builds the spell's target list from the low nibble of its area type. 0: the caster. 5: weighted picks until a second
-  or later pick brings the total weight past a budget (spell 79: caster level, weighted by icon size; others: 2d4,
-  weighted by level). 15: the picked creature, or the area around a picked bare cell. 8..14: everything within (area and
-  7) of the picked cell. Others: (area and 3) + 1 separate picks; spells 23, 49 and 94 refuse the caster. A repeated
-  pick is refused; for the computer it uses up a pick, or one point of the weight budget. Note: the radius for a bare
-  cell under type 15 is (area and $F) shr 4, which is always 0, and when the separate picks find nothing the target cell
-  is read through the entry before the first target.
+{ Builds the spell's target list from the low nibble of its area type. 0: the caster. 5: weighted picks, never the
+  caster, until a second or later pick brings the total weight past a budget (spell 79: caster level, weighted by icon
+  size; others: 2d4, weighted by level). 15: the picked creature, or the area around a picked bare cell. 8..14:
+  everything within (area and 7) of the picked cell. Others: (area and 3) + 1 separate picks; spells 23, 49 and 94
+  refuse the caster. A repeated pick is refused; for the computer it uses up a pick, or one point of the weight budget.
+  Note: the radius for a bare cell under type 15 is (area and $F) shr 4, which is always 0, and when the separate picks
+  find nothing the target cell is read through the entry before the first target.
   @param(spell The spell being cast.)
   @param(ai False when the player aims; True for computer-controlled targeting.)
   @param(cast Set True; set False when the pick for types 8..15 fails or the separate picks find nothing.) }
@@ -1020,6 +1020,8 @@ begin
             for i := 1 to cnt do
               if GDVars.castTargets[i] = tgt.ptr then
                 dup := True;
+            if tgt.ptr = GDVars.curChar then
+              dup := True;
             if not dup then begin
               Inc(cnt);
               GDVars.castTargets[cnt] := tgt.ptr;
@@ -1042,7 +1044,10 @@ begin
                 finished := True;
             end else begin
               if ai then Dec(budget)
-                    else CharHlp.PrintBottomLine('Already been targeted');
+              else if tgt.ptr <> GDVars.curChar then
+                CharHlp.PrintBottomLine('Already been targeted')
+              else
+                CharHlp.PrintBottomLine('Cannot target yourself');
             end;
             CbtMap.RedrawArenaCell(CbtMap.CombatCellX(tgt.ptr), CbtMap.CombatCellY(tgt.ptr));
           end else

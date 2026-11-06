@@ -6,8 +6,8 @@ unit SaveLoad;
 
 interface
 
-uses Types, CharHlp, ClassCal, MenuCore, Portrait, View3D, MapTiles, Blit, TextRend, DaxIo, GameIo, Dos, Crt, GDConsts,
-  GDVars, C_Race, C_Class, C_Keys, C_Ifc, C_Stat;
+uses Types, FxEngine, CharHlp, ClassCal, MenuCore, Portrait, View3D, MapTiles, Blit, TextRend, DaxIo, GameIo, Dos, Crt,
+  GDConsts, GDVars, C_Race, C_Class, C_Keys, C_Ifc, C_Stat, C_Effect;
 
 { Lists the characters that can be loaded: the *.guy files (save mode 0, CURSE imports) or *.who files (save mode 1) of
   the mode's record size in the save directory, leaving out characters already in the party and those with a byte above
@@ -20,7 +20,7 @@ procedure LoadCharlist(var a, b: Types.PItemRec);
 { Makes sure the save directory can be reached in save modes 0 and 1: while the game disk (volume SECRET, or CURSE in
   mode 0) sits in a floppy save drive it asks for the save disk; a missing directory is created, on a floppy after
   asking whether the save disk is in. An unexpected error on a hard disk is reported and fails. Note: in mode 1 that
-  error message ends in a stray "hali".
+  error message ends in a stray " H".
   @returns(True when the directory is ready.) }
 function CheckSaveDir: Boolean;
 
@@ -48,9 +48,9 @@ procedure DeleteCharacterFiles(cr: Pointer);
 procedure SaveChar(cr: Types.PCharRecord; fname: Types.TStr8);
 
 { Loads a character from the save directory: its record (in save mode 0 converted from a CURSE record by
-  ConvertPoolRecord, in save mode 1 marking a paladin's cure disease as available), then its .stf items in save mode 1
-  and its .sfx effects when those files exist, and recalculates its stats and class values. Note: the buffer for a
-  converted record is never freed.
+  ConvertPoolRecord, a paladin also getting its cure disease and a permanent Protection from Evil; in save mode 1
+  marking a paladin's cure disease as available), then its .stf items in save mode 1 and its .sfx effects when those
+  files exist, and recalculates its stats and class values. Note: the buffer for a converted record is never freed.
   @param(name The file name, with its extension.)
   @param(cr Receives the character.)
   @param(savedGame Unused.)
@@ -252,7 +252,7 @@ begin
                if UpCase(GDVars.saveDir[1]) < 'C' then
                  TextRend.DisplayAndPause(Yellow, 0, 'Put save disk in ' + GDVars.saveDir[1] + ':')
                else begin
-                 TextRend.DisplayAndPause(Yellow, 0, 'Unexpected error during save: ' + CharHlp.Uint8Str(err) + 'hali');
+                 TextRend.DisplayAndPause(Yellow, 0, 'Unexpected error during save: ' + CharHlp.Uint8Str(err) + ' H');
                  Exit;
                end;
              end;
@@ -637,6 +637,11 @@ begin
          cr^.combatAddr := nil;
          cr^.nextCharAddr := nil;
          ConvertPoolRecord;
+         if (cr^.classLevelA[C_Class.PALADIN] > 0)
+            or ((cr^.formerClass = C_Class.PALADIN) and ClassCal.EarlierClassActive(cr)) then begin
+           cr^.cureDiseaseLeft := 1;
+           FxEngine.AddEffect(Types.PCharRecord(cr), C_Effect.PROTECTION_FROM_EVIL, 0, 255, 0);
+         end;
        end;
   end;
   Delete(name, Pos('.', name), 4);

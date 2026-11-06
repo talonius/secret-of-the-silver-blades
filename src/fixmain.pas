@@ -58,7 +58,7 @@ begin
   GameInit.InitializeGame;
   SoundDrv.StartSound;
 
-  if ParamStr(1) <> 'Woof' then
+  if ParamStr(1) <> 'Hoop' then
     Intro.Introduction
   else
     GDVars.heapFailureSaveEnabled := 1;
@@ -67,7 +67,7 @@ begin
   GDVars.autoDelay := 3000;
   GDVars.defaultKey := Ord('D');
   TextRend.DisplayString(0, 22, 0, LightGreen, '      Secret of the Silver Blades      ');
-  TextRend.DisplayString(0, 23, 0, LightGreen, '   Version 1.10           May 18,1990  ');
+  TextRend.DisplayString(0, 23, 0, LightGreen, '   Version 1.20           May 18,1990  ');
   GDVars.menuResult := MenuCore.MenuHorizontal('              ', 'Play Demo', LightMagenta, LightGreen, White, 0, 0,
                                                GDVars.menuOut);
   GDVars.autoDelay := 0;

@@ -14,19 +14,19 @@ function CarryingCapacity(p: Types.PCharRecord): Word;
 { Takes weight off a character's encumbrance.
   @param(p The character.)
   @param(w The weight removed.) }
-procedure RemoveWeight(p: Types.PCharRecord; w: Word);
+procedure RemoveWeight(p: Types.PCharRecord; w: LongInt);
 
 { Adds weight to a character's encumbrance.
   @param(p The character.)
   @param(w The weight added.) }
-procedure AddWeight(p: Types.PCharRecord; w: Word);
+procedure AddWeight(p: Types.PCharRecord; w: LongInt);
 
 { Tells whether more weight would overload a character.
   @param(p Character to test.)
   @param(w Weight to add.)
   @param(takable Receives what it can still take when it would be overloaded (0 if already over), otherwise 0.)
   @returns(True when the weight would overload it.) }
-function CheckOverload(p: Types.PCharRecord; w: Word; var takable: Word): Boolean;
+function CheckOverload(p: Types.PCharRecord; w: LongInt; var takable: LongInt): Boolean;
 
 { Moves the money of each player character, and of each NPC with the value $B3, into the pool, taking its weight off,
   and marks the pool as holding money. }
@@ -66,7 +66,7 @@ function ParseMoneyType(s: String; var typeName: String): ShortInt;
   @param(query The question shown.)
   @param(color The question's color.)
   @returns(The number, or 0 on Escape.) }
-function InputNumberMax(max: Word; query: Types.TStr40; color: Byte): Word;
+function InputNumberMax(max: LongInt; query: Types.TStr40; color: Byte): LongInt;
 
 { Moves coins of one type, with their weight, from one character to another when the receiver can carry them; otherwise
   shows "Overloaded", pauses and flushes the keyboard.
@@ -74,14 +74,14 @@ function InputNumberMax(max: Word; query: Types.TStr40; color: Byte): Word;
   @param(rcv The character receiving them.)
   @param(qty The amount.)
   @param(mType The money type.) }
-procedure TradeMoney(var giver, rcv: Types.PCharRecord; qty: Word; mType: ShortInt);
+procedure TradeMoney(var giver, rcv: Types.PCharRecord; qty: LongInt; mType: ShortInt);
 
 { Takes money from a character; in the loot screen, in shops and temples and in the vault it goes into the pool,
   elsewhere it is lost.
   @param(p The character.)
   @param(qty The amount.)
   @param(mType The money type.) }
-procedure DropMoney(p: Types.PCharRecord; qty: Word; mType: ShortInt);
+procedure DropMoney(p: Types.PCharRecord; qty: LongInt; mType: ShortInt);
 
 { Tells what treasure is left.
   @param(hasMoney Set True when any pool slot is not 0, else False.)
@@ -122,30 +122,22 @@ procedure AppraiseMenu(var ok: Boolean);
 
 implementation
 
-type
-  { low/high word view of a pool slot }
-  TLoW = record lo: Word; hi: Word; end;
-
-var
-  { the low words of treasureMoney }
-  treasureMoneyLo: array[0..6] of TLoW absolute GDVars.treasureMoney;
-
 function CarryingCapacity(p: Types.PCharRecord): Word;
 begin
   CarryingCapacity := CharHlp.WeightAllowance(p) + 1500;
 end;
 
-procedure RemoveWeight(p: Types.PCharRecord; w: Word);
+procedure RemoveWeight(p: Types.PCharRecord; w: LongInt);
 begin
   p^.encumbrance := p^.encumbrance - w;
 end;
 
-procedure AddWeight(p: Types.PCharRecord; w: Word);
+procedure AddWeight(p: Types.PCharRecord; w: LongInt);
 begin
   p^.encumbrance := p^.encumbrance + w;
 end;
 
-function CheckOverload(p: Types.PCharRecord; w: Word; var takable: Word): Boolean;
+function CheckOverload(p: Types.PCharRecord; w: LongInt; var takable: LongInt): Boolean;
 var
   cap: Word;
 begin
@@ -195,7 +187,7 @@ end;
 
 procedure GivePlatinum(pp: Word);
 var
-  takable: Word;
+  takable: LongInt;
 begin
   if Money.CheckOverload(GDVars.curChar, pp, takable) then begin
     CharHlp.PrintBottomLine('Overloaded.  Money will be put in Pool.');
@@ -208,7 +200,7 @@ begin
   end;
 end;
 
-function InputNumberMax(max: Word; query: Types.TStr40; color: Byte): Word;
+function InputNumberMax(max: LongInt; query: Types.TStr40; color: Byte): LongInt;
 var
   col: Byte;
   { Unused in this version; see the other implementations of this routine. }
@@ -219,7 +211,7 @@ var
   ch: Char;
   v: LongInt;
   code: Integer;
-  n: Word;
+  n: LongInt;
 begin
   TextRend.PrintSpaces(0, 24, Black, 40);
   TextRend.DisplayString(0, 24, color, Black, query);
@@ -233,7 +225,7 @@ begin
       '0'..'9': begin
           s := Concat(s, ch);
           Val(s, v, code);
-          if max >= v then
+          if v <= max then
             Inc(col)
           else begin
             s := maxStr;
@@ -256,7 +248,7 @@ begin
   InputNumberMax := n;
 end;
 
-procedure TradeMoney(var giver, rcv: Types.PCharRecord; qty: Word; mType: ShortInt);
+procedure TradeMoney(var giver, rcv: Types.PCharRecord; qty: LongInt; mType: ShortInt);
 begin
   if rcv^.encumbrance + qty <= Money.CarryingCapacity(rcv) then begin
     giver^.coinsA[mType] := giver^.coinsA[mType] - qty;
@@ -314,7 +306,7 @@ var
   cnt: Byte;
   { Unused in this version; see the other implementations of this routine. }
   done: Boolean;
-  takable: Word;
+  takable: LongInt;
   share: array[0..6] of Word;
   rem: array[0..6] of Word;
   i: ShortInt;
@@ -377,7 +369,7 @@ begin
   end;
 end;
 
-procedure DropMoney(p: Types.PCharRecord; qty: Word; mType: ShortInt);
+procedure DropMoney(p: Types.PCharRecord; qty: LongInt; mType: ShortInt);
 begin
   p^.coinsA[mType] := p^.coinsA[mType] - qty;
   Money.RemoveWeight(p, qty);
@@ -392,9 +384,9 @@ end;
   @param(p The character.)
   @param(qty The amount asked for.)
   @param(mType The money type.) }
-procedure TakeMoney(p: Types.PCharRecord; qty: Word; mType: ShortInt);
+procedure TakeMoney(p: Types.PCharRecord; qty: LongInt; mType: ShortInt);
 var
-  takable: Word;
+  takable: LongInt;
 begin
   if Money.CheckOverload(p, qty, takable) then begin
     CharHlp.PrintBottomLine('Overloaded');
@@ -402,7 +394,7 @@ begin
     GameIo.FlushKeys;
   end else begin
     if qty > GDVars.treasureMoney[mType] then
-      qty := treasureMoneyLo[mType].lo;
+      qty := GDVars.treasureMoney[mType];
     GDVars.treasureMoney[mType] := GDVars.treasureMoney[mType] - qty;
     p^.coinsA[mType] := p^.coinsA[mType] + qty;
     Money.AddWeight(p, qty);
@@ -459,7 +451,7 @@ var
   cnt: Word;
   idx: Integer;
   numStr: String;
-  n: Word;
+  n: LongInt;
   exitF: Boolean;
   redraw: Boolean;
   ch: Char;
@@ -498,7 +490,7 @@ begin
         numStr := 'How Many ' + numStr + ' will you take? '
       else
         numStr := 'How much ' + numStr + ' will you take? ';
-      n := Money.InputNumberMax(treasureMoneyLo[mType].lo, numStr, LightGreen);
+      n := Money.InputNumberMax(GDVars.treasureMoney[mType], numStr, LightGreen);
       Money.TakeMoney(GDVars.curChar, n, mType);
       MenuCore.FreeStringList(save);
       GDVars.treasureMoneyFlag := False;
@@ -735,8 +727,8 @@ var
   menu: String[40];
   actionStr: String[40];
   r: Byte;
-  value: Word;
-  takable: Word;
+  value: LongInt;
+  takable: LongInt;
   p: Types.PItemRec;
   gem: Types.PItemRec;
   exitF: Boolean;
