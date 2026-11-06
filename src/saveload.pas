@@ -48,9 +48,10 @@ procedure DeleteCharacterFiles(cr: Pointer);
 procedure SaveChar(cr: Types.PCharRecord; fname: Types.TStr8);
 
 { Loads a character from the save directory: its record (in save mode 0 converted from a CURSE record by
-  ConvertPoolRecord, a paladin also getting its cure disease and a permanent Protection from Evil; in save mode 1
-  marking a paladin's cure disease as available), then its .stf items in save mode 1 and its .sfx effects when those
-  files exist, and recalculates its stats and class values. Note: the buffer for a converted record is never freed.
+  ConvertPoolRecord, a ranger also getting a permanent ranger damage bonus and a paladin its cure disease and a
+  permanent Protection from Evil; in save mode 1 marking a paladin's cure disease as available), then its .stf items in
+  save mode 1 and its .sfx effects when those files exist, and recalculates its stats and class values. Note: the buffer
+  for a converted record is never freed.
   @param(name The file name, with its extension.)
   @param(cr Receives the character.)
   @param(savedGame Unused.)
@@ -637,6 +638,9 @@ begin
          cr^.combatAddr := nil;
          cr^.nextCharAddr := nil;
          ConvertPoolRecord;
+         if (cr^.classLevelA[C_Class.RANGER] > 0)
+            or ((cr^.formerClass = C_Class.RANGER) and ClassCal.EarlierClassActive(cr)) then
+           FxEngine.AddEffect(Types.PCharRecord(cr), C_Effect.RANGER_DAMAGE_BONUS, 0, 255, 0);
          if (cr^.classLevelA[C_Class.PALADIN] > 0)
             or ((cr^.formerClass = C_Class.PALADIN) and ClassCal.EarlierClassActive(cr)) then begin
            cr^.cureDiseaseLeft := 1;
